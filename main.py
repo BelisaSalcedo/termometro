@@ -4,12 +4,47 @@ from pygame.locals import *
 class Termometro():
     def __init__(self):
         self.custome=pygame.image.load("images/termo1.png")
+    def convertir(self,grados, toUnidad):
+        resultado=0
+        if toUnidad=='F':
+            resultado=grados*9/5 +32
+        elif toUnidad=='C':
+            resultado=(grados-32)*5/9
+        else:
+            resultado=grados
+        return '{:10.2f}'.format (resultado)
+        
+class Selector():
+    __tipoUnidad=None
+    def __init__(self, unidad='C'):
+        self.__customes=[]
+        self.__customes.append(pygame.image.load('images/posiF.png'))
+        self.__customes.append(pygame.image.load('images/posiC.png'))
+        
+        self.__tipoUnidad=unidad
+    
+    def custome(self):
+        if self.__tipoUnidad=='F':
+            return self.__customes[0]
+        else:
+            return self.__customes[1]
+    
+    def change(self):
+        if self.__tipoUnidad=='F':
+            self.__tipoUnidad='C'
+        else:
+            self.__tipoUnidad=='F'
+    def unidad(self):
+        return self.__tipoUnidad
+        
+  
 
 class NumberInput():
     __value=0
-    __strValue='0'
+    __strValue=''
     __position=[0,0]
     __size=[0,0]
+    __pointsCount=0
     
     def __init__(self, value=0):
         self.__font=pygame.font.SysFont('Arial',24)
@@ -17,10 +52,20 @@ class NumberInput():
     
     def on_event(self,event):
         if event.type==KEYDOWN:
-            if event.unicode.isdigit() and len(self.__strValue)<10:
+            if event.unicode.isdigit() and len(self.__strValue)<10 or (event.unicode=='.' and self.__pointsCount==0):
                 self.__strValue+=event.unicode
+                self.value(self.__strValue)
+                if event.unicode=='.':
+                    self.__pointsCount +=1
+               
             elif event.key==K_BACKSPACE:
-                self.__strValue=self.__strValue[0:-1]
+                if self.__strValue[-1]=='.':
+                    self.__pointsCount -=1
+                    
+                self.__strValue=self.__strValue[:-1]
+                self.value(self.__strValue)
+                
+                
                 
            
     
@@ -43,11 +88,16 @@ class NumberInput():
             return self.__value
         else:
             val=str(val)
+            print(val,'cadena')
             try:
-                self.__value=int(val)
+                self.__value=foat(val)
                 self.__strValue=val
+                if '.' in self.__strValue:
+                    self.__pointsCount=1
+                else:
+                    self.__pointsCount=0
             except:
-                pass
+                print('Se ha producido un error')
     
     def width(self, val=None):
         if val==None:
@@ -116,6 +166,8 @@ class mainApp():
         self.entrada.pos((106,58))
         self.entrada.size((133,28))
         
+        self.selector=Selector()
+        
     def __on_close(self):
         pygame.quit()
         sys.exit()
@@ -127,6 +179,17 @@ class mainApp():
                     self.__on_close()
                 self.entrada.on_event(event)
                 
+                if event.type==pygame.MOUSEBUTTONDOWN:
+                    self.selector.change()
+                    grados=self.entrada.value()
+                    nuevaUnidad=self.selector.unidad()
+                    print(nuevaUnidad)
+                    temperatura= self.termometro.convertir(grados,nuevaUnidad)
+                    print(temperatura)
+                    self.entrada.value(temperatura)
+            #Pintamos el fondo de pantalla
+            self.__screen.fill((244,236,203))
+                
             
             #pintamos el termometro en suposicion
             self.__screen.blit(self.termometro.custome,(50,34))
@@ -135,6 +198,9 @@ class mainApp():
             text=self.entrada.render() #obtemos rectagulo blanco y foto del texto y lo asignamos a text
             pygame.draw.rect(self.__screen,(255,255,255),text[0])# creamos el rectangulo blanco con sus datos(posicion y tamaño) que estan en text[0]
             self.__screen.blit(text[1],self.entrada.pos())#Pintamos la foto del texto en (text[1])
+            
+            #pintamos el selector
+            self.__screen.blit(self.selector.custome(),(112,153))
             
             pygame.display.flip()
         
