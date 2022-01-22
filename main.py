@@ -16,7 +16,7 @@ class Termometro():
         
 class Selector():
     __tipoUnidad=None
-    def __init__(self, unidad='C'):
+    def __init__(self, unidad='F'):
         self.__customes=[]
         self.__customes.append(pygame.image.load('images/posiF.png'))
         self.__customes.append(pygame.image.load('images/posiC.png'))
@@ -90,7 +90,7 @@ class NumberInput():
             val=str(val)
             print(val,'cadena')
             try:
-                self.__value=foat(val)
+                self.__value=float(val)
                 self.__strValue=val
                 if '.' in self.__strValue:
                     self.__pointsCount=1
